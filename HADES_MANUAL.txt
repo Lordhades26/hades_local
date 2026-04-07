@@ -1,0 +1,626 @@
+═══════════════════════════════════════════════════════════════════════
+           HADES-LOCAL — MANUAL DE USUARIO COMPLETO
+      Heuristic Automated Data & Execution System v1.1.0
+═══════════════════════════════════════════════════════════════════════
+
+  Agente autónomo de ciberseguridad con inteligencia artificial local.
+  Sin internet. Sin cuentas. Sin límites.
+
+  Creado por: Claude (Anthropic) — por encargo de Fabián Hormaz ábal
+  Propietario: Fabián Hormaz ábal (@LordHades268) — CTO iOfficeAI
+  Punta Arenas, Chile — 2026
+
+═══════════════════════════════════════════════════════════════════════
+                         ÍNDICE
+═══════════════════════════════════════════════════════════════════════
+
+  1. ¿Qué es HADES-LOCAL?
+  2. Requisitos del sistema
+  3. MODO A — Instalación en Linux (Ubuntu/Kali/Parrot)
+  4. MODO B — Instalación en Windows con WSL
+  5. MODO C — Uso desde Pendrive (sin instalación)
+  6. Comandos y uso del agente
+  7. Configurar Ollama (motor de IA)
+  8. Instalar herramientas de seguridad
+  9. Solución de problemas comunes
+  10. Aviso legal
+
+═══════════════════════════════════════════════════════════════════════
+  1. ¿QUÉ ES HADES-LOCAL?
+═══════════════════════════════════════════════════════════════════════
+
+HADES-LOCAL es un agente de ciberseguridad autónomo que usa inteligencia
+artificial local (Ollama) para realizar auditorías de red, detectar
+vulnerabilidades y generar reportes profesionales de forma automática.
+
+¿Qué hace exactamente?
+
+  - Descubre todos los dispositivos activos en tu red
+  - Escanea puertos y servicios de cada dispositivo
+  - Detecta vulnerabilidades conocidas (CVEs)
+  - Audita servicios web con Nikto
+  - Verifica certificados SSL/TLS
+  - Analiza cada hallazgo con inteligencia artificial
+  - Genera un reporte completo en formato Markdown
+  - Defiende sus publicaciones de ataques (módulo Shield)
+  - Opera de forma completamente autónoma si se lo indicas
+
+¿Qué NO necesita?
+
+  - Internet (la IA corre 100% local con Ollama)
+  - Cuentas en servicios externos
+  - Pagar licencias
+  - Conocimientos avanzados de hacking
+
+Compatible con: Ubuntu, Kali Linux, Parrot OS, Debian, cualquier
+Linux x86_64, y Windows a través de WSL.
+
+═══════════════════════════════════════════════════════════════════════
+  2. REQUISITOS DEL SISTEMA
+═══════════════════════════════════════════════════════════════════════
+
+MÍNIMOS:
+  - Sistema operativo: Linux x86_64 (o Windows con WSL)
+  - Python 3.8 o superior
+  - RAM: 8 GB (4 GB con modelos pequeños)
+  - Espacio en disco: 5 GB mínimo para el modelo de IA
+  - Ollama instalado con al menos un modelo descargado
+
+RECOMENDADOS:
+  - RAM: 16 GB
+  - Espacio: 20 GB
+  - CPU: 4 núcleos o más
+  - nmap instalado (para auditorías completas)
+
+Para el pendrive:
+  - Pendrive USB de 32 GB o más (FAT32 o exFAT)
+  - Python 3 en el sistema host (casi siempre preinstalado en Linux)
+
+═══════════════════════════════════════════════════════════════════════
+  3. MODO A — INSTALACIÓN EN LINUX (Ubuntu, Kali, Parrot, Debian)
+═══════════════════════════════════════════════════════════════════════
+
+PASO 1 — Descargar HADES
+────────────────────────
+Descarga el archivo hades-local.zip desde el repositorio y descomprímelo:
+
+  unzip hades-local.zip
+  cd hades-local
+
+O clona desde GitHub:
+
+  git clone https://github.com/LordHades268/hades-local.git
+  cd hades-local
+
+PASO 2 — Instalar herramientas de seguridad
+────────────────────────────────────────────
+Ejecuta el instalador incluido (requiere sudo):
+
+  chmod +x scripts/install_tools.sh
+  sudo bash scripts/install_tools.sh
+
+Esto instala automáticamente: nmap, nikto, tshark, wireshark, john,
+hashcat, aircrack-ng, dirb, netdiscover, metasploit y más.
+
+Si prefieres instalar solo lo básico manualmente:
+
+  sudo apt update
+  sudo apt install -y nmap nikto tshark john hashcat aircrack-ng
+
+PASO 3 — Instalar Ollama (motor de IA)
+───────────────────────────────────────
+Ollama es el motor que ejecuta la IA localmente en tu máquina.
+
+  curl -fsSL https://ollama.com/install.sh | sh
+
+Luego inicia el servicio:
+
+  ollama serve &
+
+Y descarga el modelo de IA (elige según tu RAM disponible):
+
+  Si tienes 8 GB RAM o más:
+    ollama pull llama3
+
+  Si tienes 4-6 GB RAM:
+    ollama pull qwen2.5:3b
+
+  Para usar el modelo HADES personalizado:
+    ollama pull HADES-AUTO
+
+PASO 4 — Configurar HADES
+──────────────────────────
+Abre hades_local.py con cualquier editor de texto y verifica esta línea:
+
+  OLLAMA_URL = "http://localhost:11434/api/generate"
+
+Si Ollama corre en la misma máquina, no necesitas cambiar nada.
+
+También puedes cambiar el modelo que usará HADES:
+
+  HADES_MODEL = "llama3"    ← cambia por el modelo que descargaste
+
+PASO 5 — Verificar instalación
+───────────────────────────────
+  python3 hades_local.py status
+
+Deberías ver algo así:
+
+  ══════════════ HADES STATUS ══════════════
+    Sistema OS    : UBUNTU
+    Ollama modelo : llama3
+    Herramientas  : 23 detectadas
+    PID agente    : No activo
+  ══════════════════════════════════════════
+
+Si "Ollama modelo" dice "NO DISPONIBLE", revisa la sección 7.
+
+═══════════════════════════════════════════════════════════════════════
+  4. MODO B — INSTALACIÓN EN WINDOWS CON WSL
+═══════════════════════════════════════════════════════════════════════
+
+WSL (Windows Subsystem for Linux) te permite correr Linux dentro de
+Windows sin instalar una máquina virtual.
+
+PASO 1 — Activar WSL en Windows
+────────────────────────────────
+Abre PowerShell como Administrador y ejecuta:
+
+  wsl --install
+
+Reinicia el equipo cuando te lo pida. Esto instala Ubuntu automáticamente.
+
+PASO 2 — Instalar Ollama en Windows
+─────────────────────────────────────
+Descarga el instalador desde: https://ollama.com/download/windows
+Instálalo como cualquier programa de Windows.
+
+Luego abre PowerShell y descarga un modelo:
+
+  ollama pull llama3
+
+PASO 3 — Permitir conexiones desde WSL
+────────────────────────────────────────
+Por defecto Ollama solo escucha en localhost de Windows. Para que WSL
+pueda comunicarse con él, ejecuta en PowerShell:
+
+  $env:OLLAMA_HOST = "0.0.0.0"
+  ollama serve
+
+IMPORTANTE: Si Ollama ya está corriendo como servicio de Windows,
+agrega la variable de entorno de forma permanente:
+
+  [System.Environment]::SetEnvironmentVariable("OLLAMA_HOST", "0.0.0.0", "Machine")
+
+Luego reinicia Ollama desde el panel de servicios de Windows.
+
+PASO 4 — Obtener la IP de Windows desde WSL
+────────────────────────────────────────────
+Abre tu terminal WSL (Ubuntu) y ejecuta:
+
+  cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
+
+Anota esa IP (ejemplo: 172.27.64.1). La necesitarás en el siguiente paso.
+
+También puedes obtenerla desde PowerShell:
+
+  (Get-NetIPAddress -InterfaceAlias "vEthernet (WSL (Hyper-V firewall))" -AddressFamily IPv4).IPAddress
+
+PASO 5 — Configurar HADES en WSL
+──────────────────────────────────
+Copia los archivos de HADES a tu carpeta home de WSL:
+
+  cp /mnt/c/Users/TU_USUARIO/Downloads/hades_local.py ~/
+
+Edita la URL de Ollama con la IP que anotaste:
+
+  sed -i 's|http://localhost:11434|http://172.27.64.1:11434|g' ~/hades_local.py
+
+(Reemplaza 172.27.64.1 por tu IP real)
+
+PASO 6 — Instalar herramientas y verificar
+────────────────────────────────────────────
+En la terminal WSL:
+
+  sudo apt update
+  sudo apt install -y nmap nikto tshark john hashcat aircrack-ng
+  python3 ~/hades_local.py status
+
+═══════════════════════════════════════════════════════════════════════
+  5. MODO C — USO DESDE PENDRIVE (SIN INSTALACIÓN)
+═══════════════════════════════════════════════════════════════════════
+
+El pendrive HADES es completamente autónomo. Contiene todo lo necesario
+para operar sin instalar nada en el equipo host.
+
+CONTENIDO DEL PENDRIVE:
+  launch.sh       → Lanzador inteligente (usa este siempre)
+  hades.sh        → Ejecutable bash portable
+  hades.bin       → Ejecutable compilado PyInstaller
+  hades.AppImage  → AppImage autocontenido
+  hades_local.py  → Código fuente Python
+  ollama          → Motor de IA portable
+  models/         → Modelos de lenguaje (~4-10 GB)
+  reports/        → Aquí se guardan tus reportes
+  logs/           → Registros de sesión
+
+REQUISITOS EN EL EQUIPO HOST:
+  - Linux x86_64 (cualquier distribución)
+  - Python 3 (casi siempre preinstalado)
+  - No necesita instalación de nada más
+
+PRIMER USO:
+───────────
+1. Conecta el pendrive al equipo Linux.
+
+2. Abre una terminal y navega al pendrive:
+
+     cd /media/TU_USUARIO/HADES
+     (o la ruta donde se montó el pendrive)
+
+   Para encontrar la ruta exacta:
+
+     lsblk
+     ls /media/
+
+3. Da permisos de ejecución (solo la primera vez):
+
+     chmod +x launch.sh hades.sh hades.bin hades.AppImage ollama
+
+4. Lanza HADES:
+
+     ./launch.sh start
+
+   El lanzador detecta automáticamente el mejor formato disponible
+   y arranca Ollama desde el pendrive si no hay uno en el sistema.
+
+DESDE WSL CON PENDRIVE:
+───────────────────────
+Si usas Windows con WSL, primero monta el pendrive:
+
+  sudo mkdir -p /mnt/pendrive
+  sudo mount -t drvfs E: /mnt/pendrive   ← cambia E: por tu letra
+
+Luego:
+
+  cd /mnt/pendrive
+  chmod +x launch.sh hades.sh ollama
+  bash launch.sh start
+
+═══════════════════════════════════════════════════════════════════════
+  6. COMANDOS Y USO DEL AGENTE
+═══════════════════════════════════════════════════════════════════════
+
+COMANDOS DIRECTOS DESDE TERMINAL:
+──────────────────────────────────
+  python3 hades_local.py status
+    → Muestra estado del agente, modelo IA y herramientas detectadas
+
+  python3 hades_local.py tools
+    → Lista todas las herramientas de seguridad instaladas
+
+  python3 hades_local.py start
+    → Abre el shell interactivo de HADES
+
+  python3 hades_local.py start --auto
+    → Modo autónomo: escanea la red cada 30 minutos sin intervención
+
+  python3 hades_local.py scan 192.168.1.1
+    → Escaneo rápido de puertos de un host específico
+
+  python3 hades_local.py recon 192.168.1.0/24
+    → Reconocimiento completo de toda una red con análisis IA
+
+  python3 hades_local.py fullaudit 192.168.1.0/24
+    → Auditoría completa automática (el comando más poderoso)
+    → Descubre hosts, escanea puertos, detecta CVEs, audita web,
+      verifica SSL y genera reporte con análisis IA por host
+
+  python3 hades_local.py audit 192.168.1.1
+    → Auditoría por controles ISO 27001 de un host específico
+
+  python3 hades_local.py analyze archivo.pcap
+    → Análisis forense de archivos .pcap, .hash, binarios
+
+  python3 hades_local.py stop
+    → Detiene el agente si está corriendo en modo autónomo
+
+COMANDOS DENTRO DEL SHELL INTERACTIVO:
+───────────────────────────────────────
+Una vez dentro del shell (python3 hades_local.py start), el prompt
+cambia a:  HADES@ubuntu ▶
+
+Comandos disponibles dentro del shell:
+
+  scan 192.168.1.1
+    → Escaneo rápido de un host
+
+  recon 192.168.1.0/24
+    → Reconocimiento completo de una red
+
+  fullaudit 192.168.1.0/24
+    → Auditoría automática completa con reporte
+
+  audit 192.168.1.1
+    → Auditoría ISO 27001
+
+  analyze /ruta/al/archivo
+    → Análisis forense de archivo
+
+  ask ¿cuál es el riesgo de tener el puerto 22 abierto?
+    → Consulta libre al modelo de IA sobre cualquier tema de seguridad
+
+  tools
+    → Ver herramientas detectadas organizadas por categoría
+
+  findings
+    → Ver todos los hallazgos acumulados en la sesión actual
+
+  clear
+    → Limpiar la pantalla
+
+  help
+    → Mostrar lista de comandos
+
+  exit
+    → Salir del shell
+
+EJEMPLOS DE USO PRÁCTICO:
+──────────────────────────
+
+Ejemplo 1 — Auditar tu red doméstica:
+  python3 hades_local.py fullaudit 192.168.1.0/24
+
+Ejemplo 2 — Verificar un servidor específico:
+  python3 hades_local.py audit 192.168.1.100
+
+Ejemplo 3 — Escaneo rápido antes de una reunión:
+  python3 hades_local.py scan 192.168.1.1
+
+Ejemplo 4 — Analizar un archivo de captura de red:
+  python3 hades_local.py analyze /home/usuario/captura.pcap
+
+Ejemplo 5 — Dejar el agente monitoreando autónomamente:
+  python3 hades_local.py start --auto
+
+Ejemplo 6 — Hacer una pregunta técnica a la IA:
+  (dentro del shell)
+  ask ¿qué significa que el puerto 554 RTSP esté abierto en una cámara IP?
+
+¿DÓNDE SE GUARDAN LOS REPORTES?
+─────────────────────────────────
+Todos los reportes se guardan automáticamente en:
+
+  ~/hades_reports/
+
+Con nombres como:
+  hades_full_audit_20260406_204500.md
+  hades_iso27001_20260406_210000.md
+
+Puedes abrirlos con cualquier editor de texto o visor Markdown.
+
+Desde el pendrive los reportes se guardan en:
+  /ruta/del/pendrive/reports/
+
+═══════════════════════════════════════════════════════════════════════
+  7. CONFIGURAR OLLAMA (MOTOR DE IA)
+═══════════════════════════════════════════════════════════════════════
+
+Ollama es el programa que ejecuta los modelos de IA localmente.
+Sin Ollama, HADES funciona pero sin análisis inteligente.
+
+INSTALAR OLLAMA EN LINUX:
+  curl -fsSL https://ollama.com/install.sh | sh
+
+INSTALAR OLLAMA EN WINDOWS:
+  Descarga el instalador desde https://ollama.com/download/windows
+
+INICIAR OLLAMA:
+  ollama serve
+
+MODELOS RECOMENDADOS:
+  (elige según la RAM de tu equipo)
+
+  4 GB RAM  → ollama pull qwen2.5:3b      (rápido, ligero)
+  8 GB RAM  → ollama pull llama3           (buena calidad)
+  8 GB RAM  → ollama pull qwen2.5:7b      (muy buena calidad)
+  8 GB RAM  → ollama pull HADES-AUTO      (modelo personalizado)
+  16 GB RAM → ollama pull dolphin3        (máxima calidad)
+
+VERIFICAR QUE OLLAMA FUNCIONA:
+  curl http://localhost:11434/api/tags
+
+Si devuelve una lista de modelos en formato JSON, Ollama está activo.
+
+CAMBIAR EL MODELO EN HADES:
+  Edita la línea HADES_MODEL en hades_local.py:
+
+  HADES_MODEL = "llama3"   ← pon aquí el nombre del modelo que descargaste
+
+═══════════════════════════════════════════════════════════════════════
+  8. INSTALAR HERRAMIENTAS DE SEGURIDAD
+═══════════════════════════════════════════════════════════════════════
+
+HADES detecta automáticamente qué herramientas tienes instaladas.
+Mientras más herramientas tengas, más completas serán las auditorías.
+
+INSTALACIÓN AUTOMÁTICA (Ubuntu/Debian):
+  sudo bash scripts/install_tools.sh
+
+INSTALACIÓN MANUAL BÁSICA:
+  sudo apt update
+  sudo apt install -y nmap nikto tshark john hashcat aircrack-ng dirb
+
+INSTALACIÓN DE METASPLOIT (Ubuntu):
+  curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall
+  chmod +x msfinstall
+  sudo ./msfinstall
+
+EN KALI LINUX O PARROT OS:
+  Todas las herramientas ya están preinstaladas. Solo necesitas
+  instalar Python 3 y Ollama.
+
+HERRAMIENTAS QUE DETECTA HADES:
+
+  [RECONOCIMIENTO]
+  nmap          → Escaneo de puertos y servicios (MUY RECOMENDADO)
+  netdiscover   → Descubrimiento de hosts en red local
+  whois         → Información de dominios
+  dig           → Consultas DNS
+
+  [WEB]
+  nikto         → Vulnerabilidades en servidores web
+  dirb          → Descubrimiento de directorios ocultos
+  gobuster      → Fuerza bruta de rutas web
+  sqlmap        → Detección de inyección SQL
+
+  [EXPLOTACIÓN]
+  msfconsole    → Metasploit Framework
+  searchsploit  → Base de datos de exploits
+
+  [TRÁFICO DE RED]
+  tshark        → Análisis de capturas de red (.pcap)
+  tcpdump       → Captura de paquetes en tiempo real
+  wireshark     → Análisis visual de tráfico
+
+  [WIFI]
+  aircrack-ng   → Auditoría de redes WiFi
+  airodump-ng   → Captura de handshakes WiFi
+
+  [CRACKING]
+  john          → John the Ripper (cracking de contraseñas)
+  hashcat       → Cracking de hashes por GPU/CPU
+  hydra         → Fuerza bruta en servicios (SSH, FTP, HTTP...)
+  hashid        → Identificación del tipo de hash
+
+  [FORENSE]
+  binwalk       → Análisis de firmware y binarios
+  exiftool      → Extracción de metadatos de archivos
+  strings       → Extracción de texto en binarios
+  volatility3   → Análisis forense de memoria RAM
+
+  [REVERSING]
+  gdb           → Debugger GNU
+  radare2       → Framework de ingeniería inversa
+  objdump       → Desensamblado de binarios
+
+═══════════════════════════════════════════════════════════════════════
+  9. SOLUCIÓN DE PROBLEMAS COMUNES
+═══════════════════════════════════════════════════════════════════════
+
+PROBLEMA: "Ollama modelo: NO DISPONIBLE"
+─────────────────────────────────────────
+Causa: Ollama no está corriendo o no puede conectarse.
+
+Solución en Linux:
+  ollama serve &
+  curl http://localhost:11434/api/tags   ← debe devolver JSON
+
+Solución en WSL (Ollama en Windows):
+  1. En PowerShell: $env:OLLAMA_HOST = "0.0.0.0" && ollama serve
+  2. Obtén la IP: cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
+  3. Edita hades_local.py: OLLAMA_URL = "http://TU_IP:11434/api/generate"
+
+──────────────────────────────────────────────────────────────────────
+
+PROBLEMA: "Herramientas detectadas: 0" o muy pocas
+────────────────────────────────────────────────────
+Causa: Las herramientas no están instaladas.
+
+Solución:
+  sudo bash scripts/install_tools.sh
+  python3 hades_local.py tools   ← verifica cuántas detecta ahora
+
+──────────────────────────────────────────────────────────────────────
+
+PROBLEMA: "ERROR OLLAMA" durante auditoría
+──────────────────────────────────────────
+Causa: El modelo tardó demasiado en responder (timeout).
+
+Solución: Edita hades_local.py y aumenta el timeout:
+  OLLAMA_TIMEOUT = 300   ← aumenta a 600 si tienes equipo lento
+
+──────────────────────────────────────────────────────────────────────
+
+PROBLEMA: El pendrive no se monta en WSL
+─────────────────────────────────────────
+Solución:
+  sudo mkdir -p /mnt/e
+  sudo mount -t drvfs E: /mnt/e   ← reemplaza E: con tu letra de unidad
+  ls /mnt/e/
+
+──────────────────────────────────────────────────────────────────────
+
+PROBLEMA: "Permission denied" al ejecutar scripts del pendrive
+───────────────────────────────────────────────────────────────
+Solución:
+  chmod +x /mnt/e/hades/launch.sh
+  chmod +x /mnt/e/hades/hades.sh
+  chmod +x /mnt/e/hades/ollama
+
+──────────────────────────────────────────────────────────────────────
+
+PROBLEMA: nmap requiere sudo para algunos escaneos
+───────────────────────────────────────────────────
+Algunos tipos de escaneo nmap requieren privilegios de root.
+
+Solución:
+  sudo python3 hades_local.py fullaudit 192.168.1.0/24
+
+──────────────────────────────────────────────────────────────────────
+
+PROBLEMA: Los reportes no se generan
+──────────────────────────────────────
+Verifica que la carpeta de reportes existe:
+  mkdir -p ~/hades_reports
+  python3 hades_local.py status   ← debe mostrar la ruta de reportes
+
+═══════════════════════════════════════════════════════════════════════
+  10. AVISO LEGAL
+═══════════════════════════════════════════════════════════════════════
+
+HADES-LOCAL es una herramienta de auditoría de seguridad diseñada
+exclusivamente para uso autorizado.
+
+ESTÁ PERMITIDO:
+  - Auditar redes y sistemas de tu propiedad
+  - Auditar sistemas con autorización escrita del propietario
+  - Uso educativo y de investigación en entornos controlados
+  - Prácticas en laboratorios virtuales propios
+
+ESTÁ PROHIBIDO:
+  - Usar HADES en sistemas sin autorización expresa
+  - Interceptar comunicaciones ajenas
+  - Acceder sin permiso a sistemas informáticos de terceros
+
+MARCO LEGAL APLICABLE:
+  - Chile: Ley 21.459 de Delitos Informáticos
+  - Chile: Ley 19.628 de Protección de Datos Personales
+  - Internacional: Convenio de Budapest sobre Ciberdelincuencia
+  - EE.UU.: Computer Fraud and Abuse Act (CFAA)
+  - UE: Directiva NIS2
+
+El autor no asume responsabilidad por el uso indebido de esta
+herramienta. El usuario es el único responsable de cumplir con
+las leyes aplicables en su jurisdicción.
+
+═══════════════════════════════════════════════════════════════════════
+                    CRÉDITOS
+═══════════════════════════════════════════════════════════════════════
+
+  Diseño y desarrollo del agente:
+    Claude (Anthropic) — claude.ai
+
+  Propietario y operador:
+    Fabián Hormaz ábal
+    CTO — Servicios Integrales Empresariales SPA
+    Especialista en Ciberseguridad | Auditor ISO 27001
+    Punta Arenas, Región de Magallanes, Chile
+    X/Twitter: @LordHades268
+
+  Versión: HADES-LOCAL v1.1.0
+  Fecha: Abril 2026
+
+═══════════════════════════════════════════════════════════════════════
+              FIN DEL MANUAL — HADES-LOCAL v1.1.0
+═══════════════════════════════════════════════════════════════════════
