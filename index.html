@@ -857,7 +857,7 @@ footer span { color: var(--green2); }
       <div class="term">
         <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash — pegar en terminal</span></div>
         <div class="term-body" id="cmd-dl">
-          <div class="cmd">mkdir hades_local && cd hades_local && wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/hades_local.py && wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/install_tools.sh && wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/HADES_MANUAL.txt</div>
+          <div class="cmd">mkdir -p ~/hades_local && cd ~/hades_local && wget -q https://raw.githubusercontent.com/Lordhades26/hades_local/main/hades_local.py && wget -q https://raw.githubusercontent.com/Lordhades26/hades_local/main/install_tools.sh && wget -q https://raw.githubusercontent.com/Lordhades26/hades_local/main/HADES_MANUAL.txt && echo "[OK] Archivos descargados en ~/hades_local/"</div>
         </div>
       </div>
     </div>
@@ -890,7 +890,7 @@ footer span { color: var(--green2); }
       <div class="term">
         <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash — pegar en terminal</span></div>
         <div class="term-body" id="cmd-launch">
-          <div class="cmd">python3 hades_local.py status && python3 hades_local.py start</div>
+          <div class="cmd">cd ~/hades_local && python3 hades_local.py status && python3 hades_local.py start</div>
         </div>
       </div>
     </div>
