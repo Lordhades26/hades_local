@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HADES-LOCAL — Autonomous Security Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c0a;
+  --bg2: #0f120f;
+  --bg3: #141814;
+  --green: #1D9E75;
+  --green2: #0f6e56;
+  --green3: #5DCAA5;
+  --red: #c0392b;
+  --red2: #e74c3c;
+  --amber: #d4ac0d;
+  --text: #c8d5c8;
+  --text2: #7a8f7a;
+  --text3: #4a5f4a;
+  --border: #1f2b1f;
+  --border2: #2a3d2a;
+  --mono: 'Share Tech Mono', 'Courier New', monospace;
+  --serif: 'Courier Prime', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  line-height: 1.6;
+  cursor: default;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--green2); border-radius: 2px; }
+
+/* ── HEADER ── */
+header {
+  border-bottom: 1px solid var(--border2);
+  padding: 0 2rem;
+  position: sticky;
+  top: 0;
+  background: rgba(10,12,10,0.95);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+}
+
+.header-logo {
+  font-size: 13px;
+  color: var(--green);
+  letter-spacing: 2px;
+}
+
+.header-nav {
+  display: flex;
+  gap: 1.5rem;
+  list-style: none;
+}
+
+.header-nav a {
+  color: var(--text2);
+  text-decoration: none;
+  font-size: 12px;
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+
+.header-nav a:hover { color: var(--green); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 50%, rgba(29,158,117,0.06) 0%, transparent 70%);
+}
+
+.ascii-logo {
+  font-size: clamp(7px, 1.2vw, 13px);
+  line-height: 1.15;
+  color: var(--green);
+  letter-spacing: 0;
+  white-space: pre;
+  animation: fadeIn 1s ease forwards;
+  text-shadow: 0 0 20px rgba(29,158,117,0.3);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.hero-subtitle {
+  margin-top: 1.5rem;
+  font-size: 13px;
+  color: var(--text2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  animation: fadeIn 1s 0.3s ease both;
+}
+
+.hero-author {
+  margin-top: 0.5rem;
+  font-size: 12px;
+  color: var(--green2);
+  letter-spacing: 2px;
+  animation: fadeIn 1s 0.5s ease both;
+}
+
+.badge-row {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+  animation: fadeIn 1s 0.7s ease both;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 3px 10px;
+  border: 1px solid;
+  border-radius: 2px;
+  letter-spacing: 1px;
+}
+
+.badge-g { border-color: var(--green2); color: var(--green3); }
+.badge-r { border-color: var(--red); color: var(--red2); }
+.badge-a { border-color: #7a6010; color: var(--amber); }
+
+.hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  margin-top: 3rem;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  overflow: hidden;
+  max-width: 640px;
+  width: 100%;
+  animation: fadeIn 1s 0.9s ease both;
+}
+
+.metric {
+  padding: 1.2rem;
+  background: var(--bg2);
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.metric:last-child { border-right: none; }
+
+.metric-val {
+  font-size: 24px;
+  color: var(--green);
+  display: block;
+}
+
+.metric-lbl {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  margin-top: 4px;
+  display: block;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text3);
+  font-size: 11px;
+  letter-spacing: 2px;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+/* ── SECTIONS ── */
+.section {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 4rem 2rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 10px;
+  color: var(--green2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+}
+
+.section-title {
+  font-size: clamp(18px, 3vw, 28px);
+  color: var(--green3);
+  letter-spacing: 1px;
+  margin-bottom: 1.5rem;
+}
+
+.section-title span { color: var(--text2); }
+
+/* ── TERMINAL BLOCKS ── */
+.term {
+  background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1rem 0;
+}
+
+.term-bar {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border);
+  padding: 6px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot { width: 8px; height: 8px; border-radius: 50%; }
+.dot-r { background: #c0392b; }
+.dot-y { background: #d4ac0d; }
+.dot-g { background: var(--green2); }
+
+.term-label {
+  font-size: 11px;
+  color: var(--text3);
+  margin-left: 4px;
+  letter-spacing: 1px;
+}
+
+.term-body {
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.term-body .prompt::before { content: "$ "; color: var(--green2); }
+.term-body .cmd { color: var(--green3); }
+.term-body .comment { color: var(--text3); }
+.term-body .out { color: var(--text2); }
+.term-body .ok { color: var(--green); }
+.term-body .err { color: var(--red2); }
+
+/* ── STEPS ── */
+.steps { display: flex; flex-direction: column; gap: 1.5rem; }
+
+.step {
+  display: flex;
+  gap: 1rem;
+  padding: 1.2rem;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: border-color 0.2s;
+}
+
+.step:hover { border-color: var(--border2); }
+
+.step-num {
+  min-width: 32px;
+  height: 32px;
+  border: 1px solid var(--green2);
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--green);
+  flex-shrink: 0;
+}
+
+.step-content { flex: 1; }
+
+.step-title {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+
+/* ── GRID CARDS ── */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+
+.card {
+  background: var(--bg2);
+  padding: 1.5rem;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.card:last-child { border-right: none; }
+
+.card-title {
+  font-size: 11px;
+  color: var(--green2);
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.card-list { list-style: none; }
+
+.card-list li {
+  font-size: 12px;
+  color: var(--text2);
+  padding: 3px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-list li:last-child { border-bottom: none; }
+.card-list li::before { content: "› "; color: var(--green2); }
+
+/* ── COMMAND TABLE ── */
+.cmd-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.cmd-table tr { border-bottom: 1px solid var(--border); }
+.cmd-table tr:last-child { border-bottom: none; }
+
+.cmd-table td {
+  padding: 10px 12px;
+  font-size: 12px;
+  vertical-align: top;
+}
+
+.cmd-table .td-cmd {
+  color: var(--green3);
+  white-space: nowrap;
+  width: 40%;
+}
+
+.cmd-table .td-desc { color: var(--text2); }
+
+.cmd-table tr:hover td { background: var(--bg2); }
+
+/* ── ACCORDION ── */
+.accordion { margin: 1rem 0; }
+
+.acc-item {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+.acc-header {
+  padding: 12px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  transition: background 0.2s;
+  user-select: none;
+}
+
+.acc-header:hover { background: var(--bg3); }
+
+.acc-title { font-size: 13px; color: var(--text); }
+.acc-title .highlight { color: var(--green); }
+.acc-title .danger { color: var(--red2); }
+
+.acc-arrow {
+  color: var(--text3);
+  font-size: 10px;
+  transition: transform 0.2s;
+}
+
+.acc-item.open .acc-arrow { transform: rotate(90deg); color: var(--green); }
+
+.acc-body {
+  display: none;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+  background: var(--bg);
+}
+
+.acc-item.open .acc-body { display: block; }
+
+/* ── INFO BOXES ── */
+.box {
+  padding: 12px 16px;
+  border-radius: 2px;
+  border-left: 3px solid;
+  margin: 1rem 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.box-green { background: rgba(29,158,117,0.06); border-color: var(--green2); color: var(--green3); }
+.box-red   { background: rgba(192,57,43,0.06);  border-color: var(--red);    color: #e88; }
+.box-amber { background: rgba(212,172,13,0.06); border-color: #7a6010;       color: var(--amber); }
+
+/* ── MODEL TABLE ── */
+.model-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.model-table th {
+  background: var(--bg3);
+  padding: 10px 14px;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+  text-align: left;
+  border-bottom: 1px solid var(--border2);
+}
+
+.model-table td {
+  padding: 10px 14px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--border);
+}
+
+.model-table tr:last-child td { border-bottom: none; }
+.model-table tr:hover td { background: var(--bg2); }
+.model-table .td-name { color: var(--green3); }
+.model-table .td-ram  { color: var(--text2); }
+.model-table .stars   { color: var(--green); }
+.model-table .rec     { color: var(--amber); font-size: 11px; letter-spacing: 1px; }
+
+/* ── TOOLS GRID ── */
+.tools-section { margin: 1rem 0; }
+
+.tool-category {
+  font-size: 10px;
+  color: var(--green2);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 1.5rem 0 0.5rem;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.tool-row {
+  display: flex;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: flex-start;
+}
+
+.tool-row:last-child { border-bottom: none; }
+.tool-name { color: var(--green3); min-width: 120px; font-size: 13px; }
+.tool-desc { color: var(--text2); font-size: 12px; padding-top: 1px; }
+
+/* ── LEGAL ── */
+.legal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 1.5rem 0;
+}
+
+.legal-col {
+  padding: 1.5rem;
+  background: var(--bg2);
+}
+
+.legal-col:first-child { border-right: 1px solid var(--border); }
+
+.legal-title {
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+}
+
+.legal-title.ok  { color: var(--green2); }
+.legal-title.bad { color: var(--red); }
+
+.legal-list { list-style: none; }
+
+.legal-list li {
+  font-size: 13px;
+  color: var(--text2);
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.legal-list li:last-child { border-bottom: none; }
+.legal-list.ok li::before  { content: "✓ "; color: var(--green); }
+.legal-list.bad li::before { content: "✗ "; color: var(--red2); }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border2);
+  padding: 2rem;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 1px;
+}
+
+footer span { color: var(--green2); }
+
+/* ── NAV TABS ── */
+.tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border2);
+  margin-bottom: 2rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab-nav::-webkit-scrollbar { display: none; }
+
+.tab-btn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+  cursor: pointer;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .hero-metrics { grid-template-columns: 1fr 1fr; }
+  .cards { grid-template-columns: 1fr; }
+  .legal-grid { grid-template-columns: 1fr; }
+  .legal-col:first-child { border-right: none; border-bottom: 1px solid var(--border); }
+  header { padding: 0 1rem; }
+  .header-nav { display: none; }
+  .ascii-logo { font-size: 5px; }
+}
+
+
+/* ── COPY BUTTON ── */
+.copy-wrap { position: relative; margin: 1rem 0; }
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: var(--green2);
+  color: #0a0c0a;
+  border: none;
+  border-radius: 2px;
+  padding: 4px 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.2s;
+  z-index: 10;
+}
+.copy-btn:hover { background: var(--green3); }
+.copy-btn.copied { background: var(--green); color: #fff; }
+
+/* ── INSTALL HERO ── */
+.install-hero {
+  background: var(--bg2);
+  border: 1px solid var(--green2);
+  border-radius: 4px;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+.install-hero-title {
+  font-size: 11px;
+  color: var(--green);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.install-hero-title::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+.repo-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--green2);
+  border-radius: 4px;
+  padding: 10px 16px;
+  color: var(--green3);
+  text-decoration: none;
+  font-size: 13px;
+  font-family: var(--mono);
+  transition: all 0.2s;
+  margin-bottom: 1.5rem;
+  word-break: break-all;
+}
+.repo-link:hover { background: var(--green2); color: #0a0c0a; border-color: var(--green); }
+
+/* ── CURSOR BLINK ── */
+.cursor::after {
+  content: '█';
+  color: var(--green);
+  animation: blink 1s infinite;
+}
+
+/* ── TYPING ANIMATION ── */
+@keyframes typing {
+  from { width: 0; }
+  to   { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-logo">HADES::LOCAL</div>
+  <nav>
+    <ul class="header-nav">
+      <li><a href="#intro">intro</a></li>
+      <li><a href="#instalacion">instalar</a></li>
+      <li><a href="#comandos">comandos</a></li>
+      <li><a href="#herramientas">tools</a></li>
+      <li><a href="#faq">faq</a></li>
+      <li><a href="https://github.com/Lordhades26/hades_local" target="_blank">github ↗</a></li>
+    </ul>
+  </nav>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <pre class="ascii-logo"> ██╗  ██╗ █████╗ ██████╗ ███████╗███████╗
+ ██║  ██║██╔══██╗██╔══██╗██╔════╝██╔════╝
+ ███████║███████║██║  ██║█████╗  ███████╗
+ ██╔══██║██╔══██║██║  ██║██╔══╝  ╚════██║
+ ██║  ██║██║  ██║██████╔╝███████╗███████║
+ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝</pre>
+
+  <p class="hero-subtitle">Heuristic Automated Data &amp; Execution System</p>
+  <p class="hero-author">Agente creado por <strong style="color:var(--green)">Lordhades26</strong> — @Lordhades26 — Punta Arenas, Chile</p>
+
+  <div class="badge-row">
+    <span class="badge badge-r">v1.1.0</span>
+    <span class="badge badge-g">LOCAL AI</span>
+    <span class="badge badge-g">x86_64</span>
+    <span class="badge badge-a">SIN INTERNET</span>
+    <span class="badge badge-g">ISO 27001</span>
+  </div>
+
+  <div class="hero-metrics">
+    <div class="metric">
+      <span class="metric-val">23+</span>
+      <span class="metric-lbl">herramientas</span>
+    </div>
+    <div class="metric">
+      <span class="metric-val">100%</span>
+      <span class="metric-lbl">IA local</span>
+    </div>
+    <div class="metric">
+      <span class="metric-val">3</span>
+      <span class="metric-lbl">modos</span>
+    </div>
+    <div class="metric">
+      <span class="metric-val">0</span>
+      <span class="metric-lbl">cuentas</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">▼ SCROLL ▼</div>
+</section>
+
+<!-- INTRO -->
+<section class="section" id="intro">
+  <div class="section-label">01 / descripción</div>
+  <h2 class="section-title">¿Qué es <span>HADES-LOCAL?</span></h2>
+
+  <p style="color:var(--text2);line-height:1.8;margin-bottom:1.5rem">
+    HADES-LOCAL es un agente de ciberseguridad autónomo que combina herramientas de hacking ético
+    con inteligencia artificial local (Ollama) para realizar auditorías de red, detectar vulnerabilidades
+    y generar reportes profesionales de forma completamente automática. La IA corre 100% en tu máquina.
+  </p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="card-title">Reconocimiento</div>
+      <ul class="card-list">
+        <li>Descubre hosts activos</li>
+        <li>Escanea puertos y servicios</li>
+        <li>Mapea superficie de ataque</li>
+        <li>Consultas DNS y WHOIS</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Vulnerabilidades</div>
+      <ul class="card-list">
+        <li>Detección de CVEs (nmap)</li>
+        <li>Auditoría web con Nikto</li>
+        <li>Verificación SSL/TLS</li>
+        <li>Scripts de explotación</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Análisis IA</div>
+      <ul class="card-list">
+        <li>Nivel de riesgo por host</li>
+        <li>Vectores de ataque</li>
+        <li>Controles ISO 27001</li>
+        <li>Resumen ejecutivo CISO</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Reportes</div>
+      <ul class="card-list">
+        <li>Formato Markdown</li>
+        <li>Tabla de riesgos</li>
+        <li>Guardado automático</li>
+        <li>~/hades_reports/</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="box box-green">
+    La IA corre 100% local con Ollama. Sin internet. Sin API keys. Sin límites de uso.
+  </div>
+
+  <h3 style="color:var(--text2);font-size:13px;margin:2rem 0 0.5rem;letter-spacing:1px">REQUISITOS DEL SISTEMA</h3>
+  <div class="cards" style="margin-top:0">
+    <div class="card">
+      <div class="card-title">Mínimos</div>
+      <ul class="card-list">
+        <li>Python 3.8+</li>
+        <li>RAM: 4 GB</li>
+        <li>Disco: 5 GB</li>
+        <li>Ollama instalado</li>
+        <li>Linux x86_64</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Recomendados</div>
+      <ul class="card-list">
+        <li>RAM: 16 GB</li>
+        <li>Disco: 20 GB</li>
+        <li>CPU: 4+ núcleos</li>
+        <li>nmap instalado</li>
+        <li>GPU (opcional)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-title">Pendrive</div>
+      <ul class="card-list">
+        <li>USB 32 GB+</li>
+        <li>Python 3 en host</li>
+        <li>FAT32 o exFAT</li>
+        <li>Sin instalación</li>
+        <li>Cualquier Linux</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- INSTALACIÓN -->
+<section class="section" id="instalacion">
+  <div class="section-label">02 / instalación</div>
+  <h2 class="section-title">Instalar <span>HADES-LOCAL</span></h2>
+
+  <!-- REPO DESTACADO -->
+  <div class="install-hero">
+    <div class="install-hero-title">Repositorio público — sin usuario ni contraseña</div>
+    <a class="repo-link" href="https://github.com/Lordhades26/hades_local" target="_blank">
+      ⌥ github.com/Lordhades26/hades_local ↗
+    </a>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:1.5rem">
+      Copia y pega cada bloque en tu terminal Linux. Sin configuración previa. Sin cuenta de GitHub.
+    </div>
+
+    <div style="font-size:11px;color:var(--green2);letter-spacing:2px;margin-bottom:8px">PASO 1 — Descargar archivos</div>
+    <div class="copy-wrap">
+      <button class="copy-btn" onclick="copyCmd(this,'cmd-dl')">COPIAR</button>
+      <div class="term">
+        <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash — pegar en terminal</span></div>
+        <div class="term-body" id="cmd-dl">
+          <div class="cmd">mkdir hades_local && cd hades_local && wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/hades_local.py && wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/install_tools.sh && wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/HADES_MANUAL.txt</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--green2);letter-spacing:2px;margin:1rem 0 8px">PASO 2 — Instalar herramientas de seguridad</div>
+    <div class="copy-wrap">
+      <button class="copy-btn" onclick="copyCmd(this,'cmd-tools')">COPIAR</button>
+      <div class="term">
+        <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash — pegar en terminal</span></div>
+        <div class="term-body" id="cmd-tools">
+          <div class="cmd">sudo apt update && sudo apt install -y nmap nikto tshark john hashcat aircrack-ng dirb netdiscover wget curl git openssl</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--green2);letter-spacing:2px;margin:1rem 0 8px">PASO 3 — Instalar Ollama (motor de IA local)</div>
+    <div class="copy-wrap">
+      <button class="copy-btn" onclick="copyCmd(this,'cmd-ollama')">COPIAR</button>
+      <div class="term">
+        <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash — pegar en terminal</span></div>
+        <div class="term-body" id="cmd-ollama">
+          <div class="cmd">curl -fsSL https://ollama.com/install.sh | sh && ollama serve & sleep 3 && ollama pull llama3</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--green2);letter-spacing:2px;margin:1rem 0 8px">PASO 4 — Verificar y lanzar HADES</div>
+    <div class="copy-wrap">
+      <button class="copy-btn" onclick="copyCmd(this,'cmd-launch')">COPIAR</button>
+      <div class="term">
+        <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash — pegar en terminal</span></div>
+        <div class="term-body" id="cmd-launch">
+          <div class="cmd">python3 hades_local.py status && python3 hades_local.py start</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="box box-green" style="margin-top:1rem;font-size:12px">
+      ¿Primera vez con HADES? Dentro del agente escribe <strong>help</strong> para ver todos los comandos disponibles.
+    </div>
+  </div>
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="showTab('linux',this)">Linux nativo</button>
+    <button class="tab-btn" onclick="showTab('wsl',this)">Windows + WSL</button>
+    <button class="tab-btn" onclick="showTab('pendrive',this)">Pendrive portable</button>
+  </div>
+
+  <!-- LINUX -->
+  <div id="tab-linux" class="tab-panel active">
+    <div class="box box-amber" style="margin-bottom:1.5rem">
+      Compatible con Ubuntu, Kali Linux, Parrot OS, Debian y cualquier Linux x86_64.
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Descargar archivos desde GitHub (sin usuario ni contraseña)</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">mkdir hades_local && cd hades_local</div>
+              <div class="prompt cmd">wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/hades_local.py</div>
+              <div class="prompt cmd">wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/build_pendrive.sh</div>
+              <div class="prompt cmd">wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/HADES_MANUAL.txt</div>
+              <div class="prompt cmd">wget https://raw.githubusercontent.com/Lordhades26/hades_local/main/index.html</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Instalar herramientas de seguridad</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">sudo apt update && sudo apt install -y nmap nikto tshark john hashcat aircrack-ng dirb netdiscover wget curl git openssl</div>
+              <div class="out" style="margin-top:8px">[OK] nmap instalado</div>
+              <div class="out">[OK] nikto instalado</div>
+              <div class="out">[OK] aircrack-ng instalado</div>
+              <div class="out">[OK] tshark instalado</div>
+              <div class="out">...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Instalar Ollama y descargar modelo de IA</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">curl -fsSL https://ollama.com/install.sh | sh</div>
+              <div class="prompt cmd">ollama serve &amp;</div>
+              <div class="prompt cmd">ollama pull llama3 <span class="comment"># o HADES-AUTO</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <div class="step-title">Verificar instalación</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">python3 hades_local.py status</div>
+              <div style="margin-top:8px;color:var(--text3)">══════════════ HADES STATUS ══════════════</div>
+              <div class="ok">  Sistema OS    : UBUNTU</div>
+              <div class="ok">  Ollama modelo : HADES-AUTO</div>
+              <div class="ok">  Herramientas  : 23 detectadas</div>
+              <div style="color:var(--text3)">══════════════════════════════════════════</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WSL -->
+  <div id="tab-wsl" class="tab-panel">
+    <div class="box box-amber" style="margin-bottom:1.5rem">
+      Ollama corre en Windows y HADES en WSL (Ubuntu). Se comunican por red local.
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Activar WSL (PowerShell como Administrador)</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">PowerShell</span></div>
+            <div class="term-body">
+              <div class="cmd">wsl --install</div>
+              <div class="out" style="margin-top:6px;font-size:12px">Reinicia el equipo cuando lo solicite.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Instalar Ollama en Windows + permitir conexiones WSL</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">PowerShell</span></div>
+            <div class="term-body">
+              <div class="comment"># Instalar desde https://ollama.com/download/windows</div>
+              <div class="cmd" style="margin-top:4px">$env:OLLAMA_HOST = "0.0.0.0"</div>
+              <div class="cmd">ollama serve</div>
+              <div class="cmd" style="margin-top:4px">ollama pull llama3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Obtener IP de Windows desde WSL y configurar HADES</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">WSL / Ubuntu</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">cat /etc/resolv.conf | grep nameserver | awk '{print $2}'</div>
+              <div class="out" style="margin-top:4px">172.27.64.1</div>
+              <div class="prompt cmd" style="margin-top:8px">sed -i 's|http://localhost:11434|http://172.27.64.1:11434|g' ~/hades_local.py</div>
+              <div class="prompt cmd" style="margin-top:4px">python3 hades_local.py status</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <div class="step-title">Instalar herramientas en WSL</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">WSL / Ubuntu</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">sudo apt update &amp;&amp; sudo apt install -y nmap nikto tshark john hashcat aircrack-ng</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PENDRIVE -->
+  <div id="tab-pendrive" class="tab-panel">
+    <div class="box box-green" style="margin-bottom:1.5rem">
+      Pendrive 100% autónomo. Contiene Ollama + modelos + ejecutables. Solo necesita Python 3 en el host.
+    </div>
+
+    <div class="term" style="margin-bottom:1.5rem">
+      <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">estructura del pendrive</span></div>
+      <div class="term-body">
+        <div class="cmd">pendrive/</div>
+        <div class="ok">├── launch.sh        <span class="comment">← LANZADOR PRINCIPAL</span></div>
+        <div class="cmd">├── hades.sh         <span class="comment">← bash portable</span></div>
+        <div class="cmd">├── hades.bin        <span class="comment">← PyInstaller x86_64</span></div>
+        <div class="cmd">├── hades.AppImage   <span class="comment">← AppImage</span></div>
+        <div class="cmd">├── ollama           <span class="comment">← motor IA (42 MB)</span></div>
+        <div class="cmd">├── models/          <span class="comment">← modelos (~8-21 GB)</span></div>
+        <div class="cmd">├── reports/         <span class="comment">← tus reportes aquí</span></div>
+        <div class="cmd">└── HADES_MANUAL.txt</div>
+      </div>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Conectar el pendrive y navegar a él</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">cd /media/TU_USUARIO/HADES</div>
+              <div class="comment"># En WSL:</div>
+              <div class="prompt cmd">sudo mkdir -p /mnt/e &amp;&amp; sudo mount -t drvfs E: /mnt/e</div>
+              <div class="prompt cmd">cd /mnt/e</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">Dar permisos (solo la primera vez)</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">chmod +x launch.sh hades.sh hades.bin ollama</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Lanzar HADES (detecta el mejor formato automáticamente)</div>
+          <div class="term">
+            <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">bash</span></div>
+            <div class="term-body">
+              <div class="prompt cmd">./launch.sh start</div>
+              <div class="out" style="margin-top:6px">[LAUNCH] Usando hades.bin (compilado PyInstaller)</div>
+              <div class="ok">[OK] Ollama iniciado desde pendrive</div>
+              <div class="ok">[OK] HADES-AUTO activo</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMANDOS -->
+<section class="section" id="comandos">
+  <div class="section-label">03 / uso</div>
+  <h2 class="section-title">Comandos <span>del agente</span></h2>
+
+  <h3 style="color:var(--text2);font-size:12px;letter-spacing:2px;margin-bottom:1rem">DESDE TERMINAL:</h3>
+  <table class="cmd-table">
+    <tr>
+      <td class="td-cmd">python3 hades_local.py status</td>
+      <td class="td-desc">Estado del agente — modelo IA, herramientas detectadas, PID</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py tools</td>
+      <td class="td-desc">Lista todas las herramientas de seguridad instaladas por categoría</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py start</td>
+      <td class="td-desc">Shell interactivo con prompt HADES@sistema ▶</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py start --auto</td>
+      <td class="td-desc">Modo autónomo — escanea la red cada 30 minutos sin intervención</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py scan &lt;IP&gt;</td>
+      <td class="td-desc">Escaneo rápido de los 1000 puertos más comunes con análisis IA</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py recon &lt;red&gt;</td>
+      <td class="td-desc">Reconocimiento completo de una red con análisis de superficie de ataque</td>
+    </tr>
+    <tr>
+      <td class="td-cmd" style="color:var(--green)">python3 hades_local.py fullaudit &lt;red&gt;</td>
+      <td class="td-desc" style="color:var(--text)">⬅ COMANDO ESTRELLA — auditoría automática completa con reporte</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py audit &lt;IP&gt;</td>
+      <td class="td-desc">Auditoría por controles ISO 27001 de un host específico</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py analyze &lt;archivo&gt;</td>
+      <td class="td-desc">Análisis forense de .pcap, .hash, binarios con IA</td>
+    </tr>
+    <tr>
+      <td class="td-cmd">python3 hades_local.py stop</td>
+      <td class="td-desc">Detener el agente si está corriendo en modo autónomo</td>
+    </tr>
+  </table>
+
+  <div class="box box-green" style="margin:1.5rem 0">
+    Los reportes se guardan automáticamente en <strong>~/hades_reports/</strong> en formato Markdown.
+    Desde el pendrive se guardan en <strong>pendrive/reports/</strong>
+  </div>
+
+  <h3 style="color:var(--text2);font-size:12px;letter-spacing:2px;margin:2rem 0 1rem">DENTRO DEL SHELL INTERACTIVO:</h3>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">HADES shell</span></div>
+    <div class="term-body">
+      <div style="color:var(--green);margin-bottom:8px">HADES@ubuntu ▶ <span class="cursor"></span></div>
+      <div class="prompt cmd">fullaudit 192.168.1.0/24 <span class="comment">   # auditoría completa de tu red</span></div>
+      <div class="prompt cmd">scan 192.168.1.1         <span class="comment">   # escaneo rápido</span></div>
+      <div class="prompt cmd">recon 192.168.1.0/24     <span class="comment">   # reconocimiento + IA</span></div>
+      <div class="prompt cmd">audit 192.168.1.1        <span class="comment">   # ISO 27001</span></div>
+      <div class="prompt cmd">analyze captura.pcap     <span class="comment">   # forense de archivo</span></div>
+      <div class="prompt cmd">ask ¿qué riesgo tiene el puerto 554 abierto?</div>
+      <div class="prompt cmd">tools                    <span class="comment">   # ver herramientas</span></div>
+      <div class="prompt cmd">findings                 <span class="comment">   # hallazgos de la sesión</span></div>
+      <div class="prompt cmd">exit                     <span class="comment">   # salir</span></div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--text2);font-size:12px;letter-spacing:2px;margin:2rem 0 1rem">FLUJO DE FULLAUDIT:</h3>
+
+  <div class="accordion">
+    <div class="acc-item open">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="highlight">FASE 1</span> — Descubrimiento de hosts activos</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        Ejecuta <strong>nmap -sn</strong> sobre el rango CIDR indicado. Detecta todos los dispositivos activos en la red y lista sus IPs. Construye el mapa inicial de objetivos.
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="highlight">FASE 2</span> — Escaneo completo por host</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        Por cada host: <strong>nmap -sV -sC -p-</strong> para identificar todos los puertos abiertos, servicios y versiones. Luego <strong>nmap --script vuln</strong> para detectar CVEs conocidos.
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="highlight">FASE 3</span> — Auditoría web y SSL</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        Para cada servicio HTTP/HTTPS detectado: ejecuta <strong>Nikto</strong> para encontrar vulnerabilidades web. Verifica certificados SSL/TLS con <strong>openssl</strong> — detecta vencidos o mal configurados.
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="highlight">FASE 4</span> — Análisis IA por host</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        El modelo de lenguaje local analiza todos los hallazgos de cada host. Determina el nivel de riesgo (BAJO/MEDIO/ALTO/CRÍTICO), identifica vectores de ataque probables y proporciona recomendaciones con referencias a controles del Anexo A de ISO 27001.
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="highlight">FASE 5</span> — Reporte y resumen ejecutivo</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        Genera un archivo <strong>.md</strong> con tabla de riesgos por host, hallazgos detallados y resumen ejecutivo para CISO. Guardado automáticamente en <strong>~/hades_reports/</strong>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- OLLAMA -->
+<section class="section" id="ollama">
+  <div class="section-label">04 / motor IA</div>
+  <h2 class="section-title">Configurar <span>Ollama</span></h2>
+
+  <p style="color:var(--text2);margin-bottom:1.5rem;line-height:1.8">
+    Ollama ejecuta los modelos de lenguaje 100% localmente. Sin Ollama, HADES funciona pero sin análisis inteligente.
+  </p>
+
+  <table class="model-table">
+    <thead>
+      <tr>
+        <th>Modelo</th>
+        <th>RAM</th>
+        <th>Velocidad</th>
+        <th>Calidad</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="td-name">qwen2.5:3b</td>
+        <td class="td-ram">4 GB</td>
+        <td class="stars">⚡⚡⚡</td>
+        <td class="stars">★★★</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="td-name">llama3</td>
+        <td class="td-ram">8 GB</td>
+        <td class="stars">⚡⚡</td>
+        <td class="stars">★★★★</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="td-name">qwen2.5:7b</td>
+        <td class="td-ram">8 GB</td>
+        <td class="stars">⚡⚡</td>
+        <td class="stars">★★★★</td>
+        <td></td>
+      </tr>
+      <tr>
+        <td class="td-name">HADES-AUTO</td>
+        <td class="td-ram">8 GB</td>
+        <td class="stars">⚡⚡</td>
+        <td class="stars">★★★★★</td>
+        <td class="rec">RECOMENDADO</td>
+      </tr>
+      <tr>
+        <td class="td-name">dolphin3</td>
+        <td class="td-ram">16 GB</td>
+        <td class="stars">⚡</td>
+        <td class="stars">★★★★★</td>
+        <td class="rec">MÁX. CALIDAD</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="term">
+    <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">setup ollama</span></div>
+    <div class="term-body">
+      <div class="comment"># Linux</div>
+      <div class="prompt cmd">curl -fsSL https://ollama.com/install.sh | sh</div>
+      <div class="prompt cmd">ollama serve &amp;</div>
+      <div class="prompt cmd">ollama pull HADES-AUTO</div>
+      <div style="margin-top:12px" class="comment"># Verificar</div>
+      <div class="prompt cmd">curl http://localhost:11434/api/tags</div>
+      <div class="ok" style="margin-top:4px">{"models":[{"name":"HADES-AUTO:latest",...}]}</div>
+    </div>
+  </div>
+</section>
+
+<!-- HERRAMIENTAS -->
+<section class="section" id="herramientas">
+  <div class="section-label">05 / arsenal</div>
+  <h2 class="section-title">Herramientas <span>detectadas</span></h2>
+
+  <p style="color:var(--text2);margin-bottom:1rem">HADES detecta automáticamente qué herramientas están instaladas y adapta sus capacidades.</p>
+
+  <div class="term" style="margin-bottom:1.5rem">
+    <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">instalación de herramientas</span></div>
+    <div class="term-body">
+      <div class="prompt cmd">sudo apt update && sudo apt install -y nmap nikto tshark john hashcat aircrack-ng dirb netdiscover wget curl git openssl</div>
+      <div class="out" style="margin-top:6px">[OK] Reconocimiento: nmap, netdiscover instalados</div>
+      <div class="out">[OK] Web: nikto, dirb instalados</div>
+      <div class="out">[OK] Tráfico: tshark instalado</div>
+      <div class="out">[OK] Cracking: john, hashcat instalados</div>
+      <div class="out">[OK] WiFi: aircrack-ng instalado</div>
+    </div>
+  </div>
+
+  <div class="tools-section">
+    <div class="tool-category">reconocimiento</div>
+    <div class="tool-row"><span class="tool-name">nmap</span><span class="tool-desc">Escáner de puertos y servicios — MUY RECOMENDADO</span></div>
+    <div class="tool-row"><span class="tool-name">netdiscover</span><span class="tool-desc">Descubrimiento de hosts en red local por ARP</span></div>
+    <div class="tool-row"><span class="tool-name">masscan</span><span class="tool-desc">Escáner de puertos masivo de alta velocidad</span></div>
+    <div class="tool-row"><span class="tool-name">whois / dig</span><span class="tool-desc">Información de dominios y consultas DNS</span></div>
+
+    <div class="tool-category">web</div>
+    <div class="tool-row"><span class="tool-name">nikto</span><span class="tool-desc">Vulnerabilidades en servidores web HTTP/HTTPS</span></div>
+    <div class="tool-row"><span class="tool-name">dirb / gobuster</span><span class="tool-desc">Descubrimiento de directorios y rutas ocultas</span></div>
+    <div class="tool-row"><span class="tool-name">sqlmap</span><span class="tool-desc">Detección y explotación de inyección SQL</span></div>
+    <div class="tool-row"><span class="tool-name">wfuzz</span><span class="tool-desc">Fuzzing de aplicaciones web</span></div>
+
+    <div class="tool-category">explotación</div>
+    <div class="tool-row"><span class="tool-name">msfconsole</span><span class="tool-desc">Metasploit Framework — plataforma de explotación</span></div>
+    <div class="tool-row"><span class="tool-name">searchsploit</span><span class="tool-desc">Base de datos local de exploits (ExploitDB)</span></div>
+
+    <div class="tool-category">tráfico de red</div>
+    <div class="tool-row"><span class="tool-name">tshark</span><span class="tool-desc">Captura y análisis de tráfico (.pcap)</span></div>
+    <div class="tool-row"><span class="tool-name">tcpdump</span><span class="tool-desc">Captura de paquetes en tiempo real</span></div>
+    <div class="tool-row"><span class="tool-name">wireshark</span><span class="tool-desc">Análisis visual de tráfico de red</span></div>
+
+    <div class="tool-category">wifi</div>
+    <div class="tool-row"><span class="tool-name">aircrack-ng</span><span class="tool-desc">Suite completa de auditoría WiFi</span></div>
+    <div class="tool-row"><span class="tool-name">airodump-ng</span><span class="tool-desc">Captura de handshakes WiFi WPA/WPA2</span></div>
+    <div class="tool-row"><span class="tool-name">aireplay-ng</span><span class="tool-desc">Inyección de paquetes en redes WiFi</span></div>
+
+    <div class="tool-category">cracking</div>
+    <div class="tool-row"><span class="tool-name">john</span><span class="tool-desc">John the Ripper — cracking de contraseñas y hashes</span></div>
+    <div class="tool-row"><span class="tool-name">hashcat</span><span class="tool-desc">Cracking de hashes por GPU/CPU</span></div>
+    <div class="tool-row"><span class="tool-name">hydra</span><span class="tool-desc">Fuerza bruta en servicios SSH, FTP, HTTP, etc.</span></div>
+    <div class="tool-row"><span class="tool-name">hashid</span><span class="tool-desc">Identificación automática del tipo de hash</span></div>
+
+    <div class="tool-category">forense y reversing</div>
+    <div class="tool-row"><span class="tool-name">binwalk</span><span class="tool-desc">Análisis de firmware y binarios embebidos</span></div>
+    <div class="tool-row"><span class="tool-name">volatility3</span><span class="tool-desc">Análisis forense de volcados de memoria RAM</span></div>
+    <div class="tool-row"><span class="tool-name">exiftool</span><span class="tool-desc">Extracción de metadatos de archivos</span></div>
+    <div class="tool-row"><span class="tool-name">gdb / radare2</span><span class="tool-desc">Debugger GNU y framework de ingeniería inversa</span></div>
+    <div class="tool-row"><span class="tool-name">objdump</span><span class="tool-desc">Desensamblado de binarios ELF</span></div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="section-label">06 / problemas</div>
+  <h2 class="section-title">Solución de <span>problemas</span></h2>
+
+  <div class="accordion">
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="danger">ERROR</span> — Ollama modelo: NO DISPONIBLE</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <p style="margin-bottom:10px">Ollama no está corriendo o no puede conectarse.</p>
+        <div class="term">
+          <div class="term-body">
+            <div class="prompt cmd">ollama serve &amp;</div>
+            <div class="prompt cmd">curl http://localhost:11434/api/tags</div>
+            <div class="comment" style="margin-top:6px"># En WSL: configura OLLAMA_HOST=0.0.0.0 en Windows</div>
+            <div class="comment"># y actualiza la IP en hades_local.py</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="danger">ERROR</span> — Herramientas detectadas: 0 o muy pocas</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <div class="term">
+          <div class="term-body">
+            <div class="prompt cmd">sudo bash scripts/install_tools.sh</div>
+            <div class="prompt cmd">python3 hades_local.py tools</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="danger">ERROR</span> — Timeout durante auditoría</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <p style="margin-bottom:10px">El modelo tardó demasiado. Edita hades_local.py:</p>
+        <div class="term">
+          <div class="term-body">
+            <div class="cmd">OLLAMA_TIMEOUT = 600  <span class="comment"># aumenta si tu equipo es lento</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="danger">ERROR</span> — Pendrive no se monta en WSL</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <div class="term">
+          <div class="term-body">
+            <div class="prompt cmd">sudo mkdir -p /mnt/e</div>
+            <div class="prompt cmd">sudo mount -t drvfs E: /mnt/e</div>
+            <div class="prompt cmd">ls /mnt/e/</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="danger">ERROR</span> — Permission denied en scripts</span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <div class="term">
+          <div class="term-body">
+            <div class="prompt cmd">chmod +x launch.sh hades.sh hades.bin ollama</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="acc-item">
+      <div class="acc-header" onclick="toggleAcc(this)">
+        <span class="acc-title"><span class="acc-title">nmap requiere sudo para algunos escaneos</span></span>
+        <span class="acc-arrow">▶</span>
+      </div>
+      <div class="acc-body">
+        <div class="term">
+          <div class="term-body">
+            <div class="prompt cmd">sudo python3 hades_local.py fullaudit 192.168.1.0/24</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEGAL -->
+<section class="section" id="legal">
+  <div class="section-label">07 / legal</div>
+  <h2 class="section-title">Aviso <span>legal</span></h2>
+
+  <div class="box box-red" style="margin-bottom:1.5rem">
+    HADES-LOCAL es una herramienta de auditoría diseñada exclusivamente para uso autorizado en sistemas propios o con autorización escrita del propietario.
+  </div>
+
+  <div class="legal-grid">
+    <div class="legal-col">
+      <div class="legal-title ok">PERMITIDO</div>
+      <ul class="legal-list ok">
+        <li>Auditar redes y sistemas propios</li>
+        <li>Auditar con autorización escrita</li>
+        <li>Uso educativo en entornos controlados</li>
+        <li>Laboratorios virtuales propios</li>
+        <li>Investigación de seguridad ética</li>
+      </ul>
+    </div>
+    <div class="legal-col">
+      <div class="legal-title bad">PROHIBIDO</div>
+      <ul class="legal-list bad">
+        <li>Sistemas sin autorización expresa</li>
+        <li>Interceptar comunicaciones ajenas</li>
+        <li>Acceso no autorizado a terceros</li>
+        <li>Cualquier uso malicioso</li>
+        <li>Actividades que violen la ley</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="term" style="margin-top:1.5rem">
+    <div class="term-bar"><div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div><span class="term-label">marco legal aplicable</span></div>
+    <div class="term-body">
+      <div class="cmd">Chile      <span class="out">→ Ley 21.459 Delitos Informáticos</span></div>
+      <div class="cmd">Chile      <span class="out">→ Ley 19.628 Protección de Datos</span></div>
+      <div class="cmd">Chile      <span class="out">→ Ley 21.663 Nueva Ley de Datos (2026)</span></div>
+      <div class="cmd">Int.       <span class="out">→ Convenio de Budapest</span></div>
+      <div class="cmd">Int.       <span class="out">→ ISO/IEC 27001:2022</span></div>
+      <div class="cmd">EE.UU.     <span class="out">→ Computer Fraud and Abuse Act (CFAA)</span></div>
+      <div class="cmd">UE         <span class="out">→ GDPR + Directiva NIS2</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div style="margin-bottom:8px;font-size:14px;color:var(--green)">HADES :: LOCAL :: v1.1.0</div>
+  <div>Desarrollado por <strong>Claude (Anthropic)</strong> por encargo de</div>
+  <div style="margin-top:4px"><span>Fabián Hormaz ábal (@Lordhades26)</span> — CTO iOfficeAI — Punta Arenas, Chile — 2026</div>
+  <div style="margin-top:12px;color:var(--text3)">
+    Este software es de uso exclusivo para auditorías de seguridad autorizadas.
+  </div>
+</footer>
+
+<script>
+function showTab(id, btn) {
+  const panel = btn.closest('.section') || document.body;
+  panel.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  panel.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function toggleAcc(header) {
+  const item = header.closest('.acc-item');
+  item.classList.toggle('open');
+}
+
+function copyCmd(btn, id) {
+  const el = document.getElementById(id);
+  const text = el.innerText.replace(/^\$ /gm, '').trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ COPIADO';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'COPIAR';
+      btn.classList.remove('copied');
+    }, 2000);
+  }).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✓ COPIADO';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'COPIAR';
+      btn.classList.remove('copied');
+    }, 2000);
+  });
+}
+</script>
+</body>
+</html>
