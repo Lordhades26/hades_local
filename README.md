@@ -65,7 +65,7 @@ HADES-LOCAL es un agente de seguridad autónomo que combina herramientas de hack
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/LordHades268/hades-local.git
+git clone https://github.com/LordHades26/hades-local.git
 cd hades-local
 ```
 
