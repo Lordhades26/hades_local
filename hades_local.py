@@ -191,10 +191,18 @@ def check_ollama():
             OLLAMA_BASE + "/api/tags", timeout=10
         ) as r:
             data = json.loads(r.read())
-            models = [m["name"].split(":")[0] for m in data.get("models",[])]
-            for m in [HADES_MODEL, FALLBACK_MODEL] + models:
-                if m.split(":")[0] in models:
-                    return m.split(":")[0]
+            full = [m["name"] for m in data.get("models", [])]   # ["llama3:latest","qwen2.5:3b"]
+            if not full:
+                return None
+            # base -> nombre completo (con etiqueta) para que Ollama lo acepte tal cual
+            bases = {}
+            for n in full:
+                bases.setdefault(n.split(":")[0], n)
+            for pref in [HADES_MODEL, FALLBACK_MODEL]:
+                b = pref.split(":")[0]
+                if b in bases:
+                    return bases[b]
+            return full[0]
     except: pass
     return None
 
