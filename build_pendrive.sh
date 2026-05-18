@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════
-#  HADES PENDRIVE BUILDER v2.1.0
+#  HADES PENDRIVE BUILDER v1.2.0
 #  Construye un pendrive autónomo: HADES + Ollama + Modelos
 #
 #  USO:
@@ -12,7 +12,7 @@ set -e
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
 CYAN='\033[0;36m'; BOLD='\033[1m'; NC='\033[0m'
 
-HADES_VERSION="2.1.0"
+HADES_VERSION="1.2.0"
 BUILD_DIR="${1:-$HOME/hades_pendrive}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -126,14 +126,11 @@ else
     exit 1
 fi
 
-# Forzar la URL de Ollama del pendrive vía variable de entorno.
-# El resolvedor de hades_local.py (resolve_ollama_base) toma
-# HADES_OLLAMA_URL como prioridad 1 — sin parchear el fuente.
-export HADES_OLLAMA_URL="${OLLAMA_URL%/api/generate}"
-
-# Solo se reescribe REPORT_DIR para que los reportes queden en el pendrive.
+# Crear script temporal con URL correcta y REPORT_DIR del pendrive
 HADES_TMP="/tmp/hades_pendrive_$$.py"
-sed "s|Path.home() / \"hades_reports\"|Path(\"$REPORTS_DIR\")|g" \
+sed "s|http://172\.[0-9.]*:11434/api/generate|$OLLAMA_URL|g;
+     s|http://localhost:11434/api/generate|$OLLAMA_URL|g;
+     s|Path.home() / \"hades_reports\"|Path(\"$REPORTS_DIR\")|g" \
     "$HADES_PY" > "$HADES_TMP"
 
 cleanup() {
@@ -293,7 +290,7 @@ cat > "$BUILD_DIR/.banner" << 'BANNEREOF'
  ██╔══██║██╔══██║██║  ██║██╔══╝  ╚════██║
  ██║  ██║██║  ██║██████╔╝███████╗███████║
  ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝
-      PENDRIVE EDITION — HADES-LOCAL v2.1.0
+      PENDRIVE EDITION — HADES-LOCAL v1.2.0
 BANNEREOF
 
 # ════════════════════════════════════════════════════════════════

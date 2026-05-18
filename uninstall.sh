@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════════
-#  HADES-LOCAL — Desinstalador v2.1.0
+#  HADES-LOCAL — Desinstalador v1.2.0
 #  Elimina el agente del equipo de forma limpia.
 #
 #  USO:
@@ -47,7 +47,7 @@ cat << 'BANNER'
  ██║  ██║██║  ██║██████╔╝███████╗███████║
  ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝
 BANNER
-echo -e "${NC}${CYAN}        DESINSTALADOR v2.1.0${NC}\n"
+echo -e "${NC}${CYAN}        DESINSTALADOR v1.2.0${NC}\n"
 
 # ── Directorio de instalación ────────────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,6 +1,6 @@
 ═══════════════════════════════════════════════════════════════════════
            HADES-LOCAL — MANUAL DE USUARIO COMPLETO
-      Heuristic Automated Data & Execution System v2.1.0
+      Heuristic Automated Data & Execution System v1.2.0
 ═══════════════════════════════════════════════════════════════════════
 
   Agente autónomo de ciberseguridad con inteligencia artificial local.
@@ -23,7 +23,6 @@
   7. Configurar Ollama (motor de IA)
   8. Instalar herramientas de seguridad
   9. Solución de problemas comunes
-  9b. Desinstalar HADES
   10. Aviso legal
 
 ═══════════════════════════════════════════════════════════════════════
@@ -129,20 +128,17 @@ Y descarga el modelo de IA (elige según tu RAM disponible):
   Para usar el modelo HADES personalizado:
     ollama pull HADES-AUTO
 
-PASO 4 — Configurar HADES (automático desde v2.1.0)
-────────────────────────────────────────────────────
+PASO 4 — Configurar HADES (automático desde v1.2.0)
+─────────────────────────────────────────────────
 No necesitas editar nada. HADES AUTODETECTA dónde está Ollama
-probando en orden: HADES_OLLAMA_URL → 127.0.0.1 → nameserver de
-/etc/resolv.conf (WSL) → host.docker.internal → gateway por
-defecto (VirtualBox/VMware NAT). Usa la primera URL que responda.
+(HADES_OLLAMA_URL -> 127.0.0.1 -> nameserver /etc/resolv.conf [WSL]
+-> host.docker.internal -> gateway por defecto [VM NAT]) y usa la
+primera URL que responda. El modelo también se detecta solo.
 
-El modelo también se detecta solo (cualquiera de "ollama list").
+Solo si Ollama está en otra máquina/puerto:
+  export HADES_OLLAMA_URL="http://IP_DE_OLLAMA:11434" 
 
-Solo si Ollama está en OTRA máquina o puerto, fuérzalo así:
-
-  export HADES_OLLAMA_URL="http://IP_DE_OLLAMA:11434"
-
-Para fijar un modelo concreto, edita hades_local.py:
+También puedes cambiar el modelo que usará HADES:
 
   HADES_MODEL = "llama3"    ← cambia por el modelo que descargaste
 
@@ -206,25 +202,22 @@ Abre tu terminal WSL (Ubuntu) y ejecuta:
 
   cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
 
-Anota esa IP (ejemplo: 172.27.64.1). La necesitarás en el siguiente paso.
+Esta IP la usa HADES automaticamente (v1.2.0+); normalmente no necesitas anotarla.
 
 También puedes obtenerla desde PowerShell:
 
   (Get-NetIPAddress -InterfaceAlias "vEthernet (WSL (Hyper-V firewall))" -AddressFamily IPv4).IPAddress
 
-PASO 5 — Copiar HADES a WSL (sin configurar nada)
-──────────────────────────────────────────────────
+PASO 5 — Configurar HADES en WSL
+──────────────────────────────────
 Copia los archivos de HADES a tu carpeta home de WSL:
 
   cp /mnt/c/Users/TU_USUARIO/Downloads/hades_local.py ~/
 
-Desde v2.1.0 NO hay que editar la URL: HADES detecta solo el host
-Windows usando el nameserver de /etc/resolv.conf. Solo asegúrate de
-haber puesto OLLAMA_HOST=0.0.0.0 en Windows (PASO 3).
+Desde v1.2.0 NO hay que editar la URL: HADES detecta solo el host
+Windows usando el nameserver de /etc/resolv.conf. Solo verifica:
 
-Si tu red WSL es atípica y no lo detecta, fuérzalo:
-
-  export HADES_OLLAMA_URL="http://$(cat /etc/resolv.conf | grep nameserver | awk '{print $2}'):11434"
+  python3 ~/hades_local.py status
 
 PASO 6 — Instalar herramientas y verificar
 ────────────────────────────────────────────
@@ -518,21 +511,16 @@ HERRAMIENTAS QUE DETECTA HADES:
 
 PROBLEMA: "Ollama modelo: NO DISPONIBLE"
 ─────────────────────────────────────────
-Causa: Ollama no corre, no tiene modelos, o está en otra máquina.
+Causa: Ollama no está corriendo o no puede conectarse.
 
 Solución en Linux:
   ollama serve &
-  ollama pull llama3
   curl http://localhost:11434/api/tags   ← debe devolver JSON
-  python3 hades_local.py status          ← ver qué URL detectó
 
 Solución en WSL (Ollama en Windows):
   1. En PowerShell: $env:OLLAMA_HOST = "0.0.0.0" && ollama serve
-  2. HADES detecta solo el host Windows; solo verifica con:
-     python3 hades_local.py status
-
-Forzar URL manualmente (Ollama en otra máquina/puerto):
-  export HADES_OLLAMA_URL="http://IP_DE_OLLAMA:11434"
+  2. Obtén la IP: cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
+  3. Si está en otra máquina: export HADES_OLLAMA_URL="http://TU_IP:11434"
 
 ──────────────────────────────────────────────────────────────────────
 
@@ -589,26 +577,6 @@ Verifica que la carpeta de reportes existe:
   python3 hades_local.py status   ← debe mostrar la ruta de reportes
 
 ═══════════════════════════════════════════════════════════════════════
-  9b. DESINSTALAR HADES
-═══════════════════════════════════════════════════════════════════════
-
-Para eliminar HADES del equipo de forma limpia:
-
-  cd ~/hades_local        (o donde lo hayas clonado)
-  bash uninstall.sh
-
-Modos:
-  bash uninstall.sh            → interactivo (pregunta qué borrar)
-  bash uninstall.sh --yes      → borra el agente sin preguntar
-                                 (conserva reportes y Ollama)
-  bash uninstall.sh --purge    → borra TODO: agente + reportes
-                                 + modelos + Ollama
-
-El desinstalador detiene el agente en ejecución, borra logs/PID,
-el comando global, el directorio del agente y, opcionalmente, los
-reportes generados y la instalación de Ollama.
-
-═══════════════════════════════════════════════════════════════════════
   10. AVISO LEGAL
 ═══════════════════════════════════════════════════════════════════════
 
@@ -651,9 +619,9 @@ las leyes aplicables en su jurisdicción.
     Punta Arenas, Región de Magallanes, Chile
     X/Twitter: @LordHades268
 
-  Versión: HADES-LOCAL v2.1.0
-  Fecha: Mayo 2026
+  Versión: HADES-LOCAL v1.2.0
+  Fecha: Abril 2026
 
 ═══════════════════════════════════════════════════════════════════════
-              FIN DEL MANUAL — HADES-LOCAL v2.1.0
+              FIN DEL MANUAL — HADES-LOCAL v1.2.0
 ═══════════════════════════════════════════════════════════════════════
